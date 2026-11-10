@@ -3,9 +3,9 @@
 
   // ---------- Кейсы ----------
   const CASES = [
-    { title: 'Рутенія', type: 'Мини-отель с бассейном · концепт',
-      desc: 'Концепт в стиле «Forest»: тёмная зелень, живое видео с бассейном, бронь прямо с первого экрана.',
-      tags: ['Дизайн', 'Hero-видео', 'Концепт'], v: 'ruteniya' },
+    { title: 'Рутенія', type: 'Мини-отель с бассейном',
+      desc: 'Сайт в стиле «Forest»: тёмная зелень, живое видео с бассейном, бронь прямо с первого экрана.',
+      tags: ['Дизайн', 'Живое видео', 'Бронирование'], v: 'ruteniya' },
     { title: 'Горянка', type: 'Садиба в Карпатах · живой сайт',
       desc: 'Сайт для семейной садибы: видео-hero, номера, форма брони без посредников. Гости приходят напрямую.',
       tags: ['Сайт под ключ', 'SEO', 'Бронирование'], v: 'horianka' },
@@ -140,7 +140,7 @@
       bar.style.setProperty('--p', (loaded / CONF.total).toFixed(3));
     }
     bar.classList.add('done');
-    preloadCases();
+    prefetchNext();
   })();
 
   // ---------- Кейсы ----------
@@ -175,17 +175,21 @@
     setTimeout(() => {
       renderCase(caseIdx);
       loadCaseVideo(caseIdx, screenOn && !past);   // новое с начала
+      prefetchNext();
       card.classList.remove('is-out');
       caseVideo.classList.remove('is-out');
-      setTimeout(() => { busy = false; }, 300);
-    }, 420);
+      setTimeout(() => { busy = false; }, 120);
+    }, 300);
   }
   const next = () => showCase(caseIdx + 1), prev = () => showCase(caseIdx - 1);
   $('prevBtn').addEventListener('click', prev);
   $('nextBtn').addEventListener('click', next);
   caseVideo.loop = true;                      // по промту кейсы сами не переключаются
-  function preloadCases() {
-    CASES.forEach(c => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = c.video; document.head.appendChild(l); });
+  const fetched = new Set([CASES[0].video]);
+  function prefetchNext() {             // только следующий ролик, а не все восемь сразу
+    const c = CASES[(caseIdx + 1) % CASES.length];
+    if (fetched.has(c.video)) return; fetched.add(c.video);
+    const l = document.createElement('link'); l.rel = 'prefetch'; l.as = 'video'; l.href = c.video; document.head.appendChild(l);
   }
 
   // ---------- Скролл → прогресс → кадр, фокус, состояние ----------
@@ -267,6 +271,34 @@
   document.querySelectorAll('.reveal').forEach(n => io.observe(n));
 
   // ---------- Прототипы: видео играет при наведении (ПК) или в кадре (телефон) ----------
+  const lb = $('lightbox'), lbVideo = $('lbVideo'), lbTitle = $('lbTitle'), lbTag = $('lbTag');
+  let lbReturn = null;
+  function openProto(card) {
+    const v = card.querySelector('video');
+    lbReturn = card;
+    lbVideo.poster = v.poster; lbVideo.src = v.dataset.src; lbVideo.currentTime = 0;
+    lbTitle.textContent = card.querySelector('h3').textContent;
+    lbTag.textContent = card.querySelector('.proto__tag').textContent;
+    lb.hidden = false; requestAnimationFrame(() => lb.classList.add('is-open'));
+    document.documentElement.style.overflow = 'hidden';
+    lbVideo.play().catch(() => {});
+    $('lbClose').focus();
+  }
+  function closeProto() {
+    if (lb.hidden) return;
+    lb.classList.remove('is-open'); lbVideo.pause();
+    document.documentElement.style.overflow = '';
+    setTimeout(() => { lb.hidden = true; lbVideo.removeAttribute('src'); lbVideo.load(); }, 300);
+    if (lbReturn) lbReturn.focus();
+  }
+  $('lbClose').addEventListener('click', closeProto);
+  lb.addEventListener('click', e => { if (e.target === lb) closeProto(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeProto(); });
+  document.querySelectorAll('.proto[data-cursor]').forEach(card => {
+    card.addEventListener('click', () => openProto(card));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProto(card); } });
+  });
+
   document.querySelectorAll('.proto video').forEach(v => {
     const card = v.closest('.proto');
     const load = () => { if (!v.src) v.src = v.dataset.src; };
@@ -277,6 +309,8 @@
     } else {
       card.addEventListener('mouseenter', () => { load(); v.play().catch(() => {}); });
       card.addEventListener('mouseleave', () => v.pause());
+      card.addEventListener('focus', () => { load(); v.play().catch(() => {}); });
+      card.addEventListener('blur', () => v.pause());
     }
   });
 
