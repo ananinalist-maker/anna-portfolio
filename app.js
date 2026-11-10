@@ -51,6 +51,7 @@
   seq.width = CONF.w; seq.height = CONF.h;
   screen.style.width = CONF.sw + 'px'; screen.style.height = CONF.sh + 'px';
   $('endImg').src = CONF.end;
+  $('cutImg').src = MOBILE ? 'assets/img/cut-m.webp' : 'assets/img/cut-d.webp';
   const ctx = seq.getContext('2d');
 
   let state = '', caseIdx = 0, focus = CONF.focusStart.slice(), busy = false, prog = 0;
