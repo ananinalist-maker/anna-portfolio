@@ -51,7 +51,7 @@ em{font-style:italic;color:var(--terra)}
 .screen__video{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .45s var(--ease)}
 .screen__video.is-out{opacity:0}
 .screen__glare{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,240,220,.16) 0%,rgba(255,240,220,0) 38%,rgba(0,0,0,.08) 100%);pointer-events:none}
-body.trans-on .scene__trans{opacity:1}
+body.is-playing .scene__trans,body.is-cases .scene__trans{opacity:1}
 body.is-cases .scene__cases{opacity:1}
 
 /* ---------- Первый экран ---------- */
@@ -285,7 +285,18 @@ mark{background:linear-gradient(transparent 58%,rgba(225,154,114,.42) 58%,rgba(2
   .hero::before{background:linear-gradient(rgba(246,239,228,.7),rgba(246,239,228,0) 34%)}
   .live{left:16px;right:auto;bottom:86px;font-size:12px;padding:8px 13px}
   .live__sep,.live span:last-child{display:none}
-  .scroll-hint,.badge--hero{display:none}
+  .scroll-hint{display:none}
+  .hero .badge--hero{right:10px;top:-20px;width:96px}
+  .hero .hero__text{right:auto;width:calc(100% - 132px);max-width:290px}
+  .hero .hero__sub{max-width:none}
+  .badge--hero .badge__strap{width:16px;height:clamp(70px,10vh,100px)}
+  .badge--hero .badge__clip{width:30px;height:18px}
+  .badge--hero .badge__card{padding:18px 8px 9px;border-radius:12px}
+  .badge--hero .badge__hole{top:7px;width:28px;height:5px;margin-left:-14px}
+  .badge--hero .badge__label{font-size:6.5px;letter-spacing:.14em}
+  .badge--hero .badge__photo{margin:6px 0 7px;border-radius:7px}
+  .badge--hero .badge__name{font-size:19px}
+  .badge--hero .badge__rows{display:none}
 
   .cases__head{top:70px;left:20px;right:20px}
   .cases__head .eyebrow{margin-bottom:6px}

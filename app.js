@@ -48,6 +48,7 @@
   const body = document.body;
   const scene = $('scene'), trans = $('trans'), screen = $('screen'), caseVideo = $('caseVideo');
   const card = $('caseCard');
+  trans.src = CONF.trans; trans.preload = 'auto';
   scene.style.width = CONF.w + 'px'; scene.style.height = CONF.h + 'px';
   $('endImg').src = CONF.end;
   $('overlayImg').src = CONF.overlay;
@@ -162,7 +163,6 @@
     setState('playing');
     window.scrollTo(0, 0);
     if (instant) { finishTransition(); return; }
-    if (!trans.src) trans.src = CONF.trans;
     trans.currentTime = 0;
     trans.playbackRate = 1;
     const p = trans.play();
@@ -179,9 +179,7 @@
     loadCaseVideo(caseIdx);
   }
   trans.addEventListener('ended', finishTransition);
-  trans.addEventListener('playing', () => body.classList.add('trans-on'));
-  // переход заранее целиком в память, чтобы не было пустого кадра
-  fetch(CONF.trans).then(r => r.blob()).then(bl => { if (!trans.src) trans.src = URL.createObjectURL(bl); }).catch(() => {});
+
 
   function goHero() {
     if (state === 'hero') return;
@@ -190,7 +188,6 @@
     trans.currentTime = 0;
     focus = CONF.focusStart.slice(); fitScene();
     window.scrollTo(0, 0);
-    body.classList.remove('trans-on');
     setState('hero');
   }
 
