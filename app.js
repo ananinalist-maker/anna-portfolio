@@ -86,9 +86,21 @@
     const h = b.map((v, i) => v / A[i][i]);
     return [h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1];
   }
-  screen.style.transform = 'matrix3d(' + homography(
-    [[0, 0], [CONF.sw, 0], [CONF.sw, CONF.sh], [0, CONF.sh]], CONF.quad
-  ).join(',') + ')';
+  // углы экрана в каждом кадре наезда (_src/v3_quads_track.py): сайт стоит на экране уже в движении
+  let QUADS = [];
+  fetch(MOBILE ? 'assets/quads-m.json' : 'assets/quads.json').then(r => r.json()).then(q => { QUADS = q; drawn = -1; }).catch(() => {});
+  const RECT = [[0, 0], [CONF.sw, 0], [CONF.sw, CONF.sh], [0, CONF.sh]];
+  let screenOn = false, past = false;
+  function placeScreen(k) {
+    const q = QUADS[k];
+    if (q) screen.style.transform = 'matrix3d(' + homography(RECT, q).join(',') + ')';
+    if (!!q !== screenOn) { screenOn = !!q; body.classList.toggle('screen-on', screenOn); }
+    syncVideo();
+  }
+  function syncVideo() {
+    if (screenOn && !past) { if (caseVideo.paused && !busy) caseVideo.play().catch(() => {}); }
+    else caseVideo.pause();
+  }
 
   // ---------- Кадры перехода: грузим батчами, рисуем только при смене ----------
   const frames = new Array(CONF.total);
@@ -106,6 +118,7 @@
     if (k < 0 || k === drawn) return;
     ctx.drawImage(frames[k], 0, 0, CONF.w, CONF.h);
     drawn = k;
+    placeScreen(k);
   }
   (function loop() { if (want !== drawn) draw(); requestAnimationFrame(loop); })();
   function loadFrame(i) {
@@ -160,7 +173,7 @@
     caseVideo.classList.add('is-out');
     setTimeout(() => {
       renderCase(caseIdx);
-      loadCaseVideo(caseIdx, state === 'cases');   // новое с начала
+      loadCaseVideo(caseIdx, screenOn && !past);   // новое с начала
       card.classList.remove('is-out');
       caseVideo.classList.remove('is-out');
       setTimeout(() => { busy = false; }, 300);
@@ -181,7 +194,6 @@
     body.classList.toggle('is-hero', s === 'hero');
     body.classList.toggle('is-playing', s === 'playing');
     body.classList.toggle('is-cases', s === 'cases');
-    if (s !== 'cases') caseVideo.pause();
   }
   const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   function onScroll() {
@@ -191,11 +203,11 @@
     const e = ease(prog);
     focus = [0, 1].map(k => CONF.focusStart[k] + (CONF.focusEnd[k] - CONF.focusStart[k]) * e);
     fitScene();
-    setState(prog < 0.015 ? 'hero' : prog < 0.995 ? 'playing' : 'cases');
+    setState(prog < 0.015 ? 'hero' : prog < 0.94 ? 'playing' : 'cases');
     // кейсы закреплены, пока идёт блок удержания; дальше видео на паузе
-    const past = scrollY > track.offsetHeight - innerHeight * 0.2;
+    past = scrollY > track.offsetHeight - innerHeight * 0.2;
     body.classList.toggle('scrolled', past);
-    if (state === 'cases') { if (past) caseVideo.pause(); else if (caseVideo.paused && !busy) caseVideo.play().catch(() => {}); }
+    syncVideo();
   }
   addEventListener('scroll', onScroll, { passive: true });
 
