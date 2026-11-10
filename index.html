@@ -10,8 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%232a1f1a%22/%3E%3Ctext x=%2232%22 y=%2246%22 font-family=%22Georgia%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%23f6efe4%22%3EA%3C/text%3E%3C/svg%3E">
-<link rel="preload" as="video" href="assets/video/transition.mp4" type="video/mp4" media="(min-width:821px)">
-<link rel="preload" as="video" href="assets/video/transition-m.mp4" type="video/mp4" media="(max-width:820px)">
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="is-hero">
@@ -35,14 +33,13 @@
       <source media="(max-width:820px)" srcset="assets/img/hero-m.jpg">
       <img class="scene__hero" id="heroImg" src="assets/img/hero-poster.jpg" alt="Анна за ноутбуком, за окном крыши Рима">
     </picture>
-    <video class="scene__trans" id="trans" muted playsinline preload="auto"></video>
+    <canvas class="scene__seq" id="seq"></canvas>
     <div class="scene__cases" id="casesLayer">
       <img class="scene__end" id="endImg" alt="">
       <div class="screen" id="screen">
         <video class="screen__video" id="caseVideo" muted playsinline loop preload="auto"></video>
         <div class="screen__glare"></div>
       </div>
-      <img class="scene__overlay" id="overlayImg" alt="">
     </div>
   </div>
 
@@ -118,8 +115,9 @@
 </div>
 
 <!-- Обычная прокрутка после кейсов -->
+<div class="loadbar" id="loadbar"><i></i></div>
 <main class="flow" id="flow">
-  <div class="flow__spacer" id="casesSpacer"></div>
+  <div class="track" id="track"><div class="track__scrub" id="scrub"></div><div class="track__hold"></div></div>
 
   <div class="marquee" aria-hidden="true">
     <div class="marquee__track">

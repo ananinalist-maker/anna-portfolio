@@ -30,32 +30,30 @@
   ].map(c => ({ ...c, video: `assets/video/case-${c.v}.mp4`, poster: `assets/video/case-${c.v}.jpg` }));
 
   // ---------- Две сцены: горизонтальная (компьютер) и вертикальная (телефон) ----------
+  // Переход идёт по скроллу (метод Apple, скилл stopscroll-hero): кадры webp рисуются на canvas.
   const MOBILE = matchMedia('(max-width:820px)').matches;
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const CONF = MOBILE ? {
-    w: 720, h: 1280,
-    trans: 'assets/video/transition-m.mp4', end: 'assets/img/end-m.jpg', overlay: 'assets/img/end_overlay-m.webp',
-    quad: [[24, 447], [632, 392], [684, 836], [76, 955]],       // углы экрана в последнем кадре
-    focusStart: [0.62, 0.5], focusEnd: [0.5, 0.5]
+    w: 720, h: 1280, dir: 'assets/frames-m', total: 96, end: 'assets/img/end-m.jpg',
+    quad: [[-2, 395], [722, 397], [722, 867], [-2, 863]], sw: 1120, sh: 720,   // экран в последнем кадре
+    focusStart: [0.6, 0.5], focusEnd: [0.5, 0.5]
   } : {
-    w: 1280, h: 720,
-    trans: 'assets/video/transition.mp4', end: 'assets/img/end-frame.jpg', overlay: 'assets/img/end_overlay.webp',
-    quad: [[232, 211], [767, 174], [836, 531], [301, 655]],
-    focusStart: [0.62, 0.42], focusEnd: [0.42, 0.55]
+    w: 1280, h: 720, dir: 'assets/frames', total: 120, end: 'assets/img/end-frame.jpg',
+    quad: [[177, 125], [1107, 127], [1109, 671], [173, 669]], sw: 1280, sh: 744,
+    focusStart: [0.62, 0.42], focusEnd: [0.5, 0.5]
   };
-  const SCREEN_W = 1280, SCREEN_H = 800, CASE_DUR = 16;
 
   const $ = id => document.getElementById(id);
   const body = document.body;
-  const scene = $('scene'), trans = $('trans'), screen = $('screen'), caseVideo = $('caseVideo');
-  const card = $('caseCard');
-  trans.src = CONF.trans; trans.preload = 'auto';
+  const scene = $('scene'), seq = $('seq'), screen = $('screen'), caseVideo = $('caseVideo');
+  const card = $('caseCard'), track = $('track'), scrub = $('scrub');
   scene.style.width = CONF.w + 'px'; scene.style.height = CONF.h + 'px';
+  seq.width = CONF.w; seq.height = CONF.h;
+  screen.style.width = CONF.sw + 'px'; screen.style.height = CONF.sh + 'px';
   $('endImg').src = CONF.end;
-  $('overlayImg').src = CONF.overlay;
+  const ctx = seq.getContext('2d');
 
-  let lock = 0;
-  const now = () => performance.now();
-  let state = 'hero', caseIdx = 0, focus = CONF.focusStart.slice(), busy = false;
+  let state = '', caseIdx = 0, focus = CONF.focusStart.slice(), busy = false, prog = 0;
 
   // ---------- Обрезка сцены как cover с точкой фокуса ----------
   function fitScene() {
@@ -89,13 +87,51 @@
     return [h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1];
   }
   screen.style.transform = 'matrix3d(' + homography(
-    [[0, 0], [SCREEN_W, 0], [SCREEN_W, SCREEN_H], [0, SCREEN_H]], CONF.quad
+    [[0, 0], [CONF.sw, 0], [CONF.sw, CONF.sh], [0, CONF.sh]], CONF.quad
   ).join(',') + ')';
+
+  // ---------- Кадры перехода: грузим батчами, рисуем только при смене ----------
+  const frames = new Array(CONF.total);
+  let want = 0, drawn = -1, loaded = 0;
+  const url = i => `${CONF.dir}/f_${String(i + 1).padStart(4, '0')}.webp`;
+  function nearest(i) {                       // нужного кадра ещё нет — берём ближайший готовый
+    for (let d = 0; d < CONF.total; d++) {
+      if (frames[i - d]) return i - d;
+      if (frames[i + d]) return i + d;
+    }
+    return -1;
+  }
+  function draw() {
+    const k = nearest(want);
+    if (k < 0 || k === drawn) return;
+    ctx.drawImage(frames[k], 0, 0, CONF.w, CONF.h);
+    drawn = k;
+  }
+  (function loop() { if (want !== drawn) draw(); requestAnimationFrame(loop); })();
+  function loadFrame(i) {
+    return new Promise(res => {
+      const img = new Image(); img.decoding = 'async';
+      img.onload = () => { frames[i] = img; loaded++; res(); };
+      img.onerror = () => { loaded++; res(); };
+      img.src = url(i);
+    });
+  }
+  const bar = $('loadbar');
+  (async () => {
+    await loadFrame(0); draw();
+    const order = [CONF.total - 1];            // сначала последний кадр, потом по порядку
+    for (let i = 1; i < CONF.total - 1; i++) order.push(i);
+    for (let i = 0; i < order.length; i += 12) {
+      await Promise.all(order.slice(i, i + 12).map(loadFrame));
+      bar.style.setProperty('--p', (loaded / CONF.total).toFixed(3));
+    }
+    bar.classList.add('done');
+    preloadCases();
+  })();
 
   // ---------- Кейсы ----------
   const dots = $('caseDots');
   dots.innerHTML = CASES.map(() => '<i></i>').join('');
-  dots.style.setProperty('--dur', CASE_DUR + 's');
   function renderCase(i) {
     const c = CASES[i];
     $('caseNum').textContent = String(i + 1).padStart(2, '0');
@@ -104,30 +140,27 @@
     $('caseType').textContent = c.type;
     $('caseDesc').textContent = c.desc;
     $('caseTags').innerHTML = c.tags.map(t => `<li>${t}</li>`).join('');
-    [...dots.children].forEach((d, k) => {
-      d.className = k < i ? 'done' : '';
-      if (k === i) { void d.offsetWidth; d.className = 'on'; }
-    });
+    [...dots.children].forEach((d, k) => { d.className = k === i ? 'on' : k < i ? 'done' : ''; });
   }
-  function loadCaseVideo(i) {
+  function loadCaseVideo(i, play) {
     const c = CASES[i];
     caseVideo.pause();
     caseVideo.poster = c.poster;
     caseVideo.src = c.video;
     caseVideo.currentTime = 0;
-    caseVideo.play().catch(() => {});
+    if (play) caseVideo.play().catch(() => {});
   }
   function showCase(i) {
     i = (i + CASES.length) % CASES.length;
     if (busy || i === caseIdx) return;
     busy = true;
     caseIdx = i;
-    caseVideo.pause();
+    caseVideo.pause();                        // прежнее видео стоп
     card.classList.add('is-out');
     caseVideo.classList.add('is-out');
     setTimeout(() => {
       renderCase(caseIdx);
-      loadCaseVideo(caseIdx);
+      loadCaseVideo(caseIdx, state === 'cases');   // новое с начала
       card.classList.remove('is-out');
       caseVideo.classList.remove('is-out');
       setTimeout(() => { busy = false; }, 300);
@@ -136,110 +169,67 @@
   const next = () => showCase(caseIdx + 1), prev = () => showCase(caseIdx - 1);
   $('prevBtn').addEventListener('click', prev);
   $('nextBtn').addEventListener('click', next);
-  // по промту: кейсы сами не переключаются, только кнопками; видео кейса крутится по кругу
-  caseVideo.loop = true;
-  const preload = () => CASES.forEach(c => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = c.video; document.head.appendChild(l); });
+  caseVideo.loop = true;                      // по промту кейсы сами не переключаются
+  function preloadCases() {
+    CASES.forEach(c => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = c.video; document.head.appendChild(l); });
+  }
 
-  // ---------- Состояния ----------
+  // ---------- Скролл → прогресс → кадр, фокус, состояние ----------
   function setState(s) {
+    if (s === state) return;
     state = s;
     body.classList.toggle('is-hero', s === 'hero');
     body.classList.toggle('is-playing', s === 'playing');
     body.classList.toggle('is-cases', s === 'cases');
+    if (s !== 'cases') caseVideo.pause();
   }
-
-  let raf = 0;
-  function trackFocus() {
-    const d = trans.duration || 6;
-    const t = Math.min(1, trans.currentTime / d);
-    const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  function onScroll() {
+    const span = scrub.offsetHeight;
+    prog = Math.max(0, Math.min(1, scrollY / span));
+    want = Math.min(CONF.total - 1, Math.round(prog * (CONF.total - 1)));
+    const e = ease(prog);
     focus = [0, 1].map(k => CONF.focusStart[k] + (CONF.focusEnd[k] - CONF.focusStart[k]) * e);
     fitScene();
-    if (state === 'playing') raf = requestAnimationFrame(trackFocus);
+    setState(prog < 0.015 ? 'hero' : prog < 0.995 ? 'playing' : 'cases');
+    // кейсы закреплены, пока идёт блок удержания; дальше видео на паузе
+    const past = scrollY > track.offsetHeight - innerHeight * 0.2;
+    body.classList.toggle('scrolled', past);
+    if (state === 'cases') { if (past) caseVideo.pause(); else if (caseVideo.paused && !busy) caseVideo.play().catch(() => {}); }
   }
+  addEventListener('scroll', onScroll, { passive: true });
 
-  function goCases(instant) {
-    if (state !== 'hero') return;
-    setState('playing');
-    window.scrollTo(0, 0);
-    if (instant) { finishTransition(); return; }
-    trans.currentTime = 0;
-    trans.playbackRate = 1;
-    const p = trans.play();
-    raf = requestAnimationFrame(trackFocus);
-    if (p) p.catch(() => finishTransition());
-  }
-  function finishTransition() {
-    cancelAnimationFrame(raf);
-    focus = CONF.focusEnd.slice(); fitScene();
-    if (trans.duration) trans.currentTime = trans.duration;
-    setState('cases');
-    lock = now();   // инерция тачпада не уносит страницу дальше кейсов
-    renderCase(caseIdx);
-    loadCaseVideo(caseIdx);
-  }
-  trans.addEventListener('ended', finishTransition);
-
-
-  function goHero() {
-    if (state === 'hero') return;
-    cancelAnimationFrame(raf);
-    trans.pause(); caseVideo.pause();
-    trans.currentTime = 0;
-    focus = CONF.focusStart.slice(); fitScene();
-    window.scrollTo(0, 0);
-    setState('hero');
-  }
+  const scrubEnd = () => scrub.offsetHeight + 2;
+  function goCases() { window.scrollTo({ top: scrubEnd(), behavior: REDUCED ? 'auto' : 'smooth' }); }
+  function goHero() { window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); }
 
   // ---------- Ввод ----------
-  addEventListener('wheel', e => {
-    if (state === 'hero' && e.deltaY > 6) { e.preventDefault(); goCases(); lock = now(); }
-    else if (state === 'playing') e.preventDefault();
-    else if (state === 'cases' && now() - lock < 1200) e.preventDefault();
-    else if (state === 'cases' && e.deltaY < -6 && scrollY <= 0 && now() - lock > 900) { e.preventDefault(); goHero(); }
-  }, { passive: false });
-
-  // касания: вертикальный свайп — сцены, горизонтальный на кейсах — следующий сайт
+  // горизонтальный свайп на кейсах — следующий/предыдущий сайт
   let tx = null, ty = null, used = false;
   addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; used = false; }, { passive: true });
   addEventListener('touchmove', e => {
-    if (ty == null || used) return;
+    if (tx == null || used || state !== 'cases') return;
     const dx = tx - e.touches[0].clientX, dy = ty - e.touches[0].clientY;
-    if (state === 'hero' && dy > 30 && Math.abs(dy) > Math.abs(dx)) { used = true; goCases(); lock = now(); }
-    else if (state === 'cases' && scrollY <= 0 && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) { used = true; dx > 0 ? next() : prev(); }
-    else if (state === 'cases' && dy < -40 && Math.abs(dy) > Math.abs(dx) && scrollY <= 0 && now() - lock > 900) { used = true; goHero(); }
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) { used = true; dx > 0 ? next() : prev(); }
   }, { passive: true });
-
   addEventListener('keydown', e => {
-    if (state === 'hero' && ['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key) && !(e.target.closest && e.target.closest('a,button'))) { e.preventDefault(); goCases(); }
-    if (state === 'cases' && scrollY <= 0) {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'ArrowUp' || e.key === 'PageUp') goHero();
-    }
+    if (state !== 'cases' || (e.target.closest && e.target.closest('input,textarea'))) return;
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
   });
 
-  $('scrollHint').addEventListener('click', () => goCases());
-  document.querySelectorAll('[data-goto="cases"]').forEach(a => a.addEventListener('click', e => {
-    e.preventDefault();
-    if (state === 'hero') goCases(); else window.scrollTo({ top: 0, behavior: 'smooth' });
-  }));
+  $('scrollHint').addEventListener('click', goCases);
+  document.querySelectorAll('[data-goto="cases"]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goCases(); }));
   document.querySelectorAll('[data-home]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goHero(); }));
   document.querySelectorAll('.nav__links a[href^="#"]:not([data-goto])').forEach(a => a.addEventListener('click', e => {
     const t = document.querySelector(a.getAttribute('href'));
     if (!t) return;
     e.preventDefault();
-    if (state === 'hero') goCases(true);
-    requestAnimationFrame(() => t.scrollIntoView({ behavior: 'smooth' }));
+    t.scrollIntoView({ behavior: 'smooth' });
   }));
 
-  // видео кейса не на экране — пауза
-  addEventListener('scroll', () => {
-    body.classList.toggle('scrolled', state === 'cases' && scrollY > innerHeight * 0.6);
-    if (state !== 'cases') return;
-    if (scrollY > innerHeight * 0.9) caseVideo.pause();
-    else if (caseVideo.paused && !busy) caseVideo.play().catch(() => {});
-  }, { passive: true });
+  // QA: ?tkp=0.55 — зафиксировать прогресс без ручного скролла
+  const forced = new URLSearchParams(location.search).get('tkp');
 
   // ---------- Живые часы: Рим и время посетителя ----------
   const romeFmt = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -299,11 +289,9 @@
     });
   }
 
-  addEventListener('resize', fitScene);
+  addEventListener('resize', onScroll);
   renderCase(0);
-  caseVideo.poster = CASES[0].poster; caseVideo.src = CASES[0].video; caseVideo.preload = 'auto';
-  fitScene();
-  setState('hero');
-  addEventListener('load', () => setTimeout(preload, 1500));
-  history.scrollRestoration = 'manual';
+  loadCaseVideo(0, false); caseVideo.preload = 'auto';
+  if (forced != null) requestAnimationFrame(() => window.scrollTo(0, scrub.offsetHeight * parseFloat(forced)));
+  onScroll();
 })();
