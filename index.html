@@ -19,6 +19,7 @@
   <nav class="nav__links">
     <a href="#" data-goto="cases">Работы</a>
     <a href="#day">24/7</a>
+    <a href="#protos">Прототипы</a>
     <a href="#services">Что делаю</a>
     <a href="#contact">Контакты</a>
   </nav>
@@ -68,22 +69,6 @@
       <span>сайты клиентов онлайн</span>
     </div>
 
-    <div class="badge" id="badge">
-      <div class="badge__strap"></div>
-      <div class="badge__clip"></div>
-      <div class="badge__card">
-        <div class="badge__hole"></div>
-        <p class="badge__label">Web designer card</p>
-        <img class="badge__photo" src="assets/img/anna-face.jpg" alt="Анна">
-        <p class="badge__name">Anna</p>
-        <dl class="badge__rows">
-          <div><dt>Делаю</dt><dd>сайты на AI</dd></div>
-          <div><dt>Плюс</dt><dd>SEO и реклама Meta</dd></div>
-          <div><dt>Работаю</dt><dd>Италия · Украина</dd></div>
-        </dl>
-      </div>
-    </div>
-
     <button class="scroll-hint" id="scrollHint" aria-label="Смотреть работы">
       <span>Листайте, покажу работы</span><i></i>
     </button>
@@ -93,7 +78,7 @@
   <section class="cases" id="cases" aria-live="polite">
     <div class="cases__head">
       <p class="eyebrow">Мои работы</p>
-      <p class="cases__hint">Сайт крутится прямо на экране. <span class="only-mob">Свайп влево и вправо.</span></p>
+      <p class="cases__hint">Живые сайты и прототипы крутятся прямо на экране. <span class="only-mob">Свайп влево и вправо.</span></p>
     </div>
     <div class="case-card" id="caseCard">
       <div class="case-card__top">
@@ -108,7 +93,6 @@
         <p class="case-card__type" id="caseType"></p>
         <p class="case-card__desc" id="caseDesc"></p>
         <ul class="case-card__tags" id="caseTags"></ul>
-        <a class="case-card__link" id="caseLink" href="#" target="_blank" rel="noopener">Открыть сайт ↗</a>
       </div>
       <div class="case-card__dots" id="caseDots"></div>
     </div>
@@ -129,10 +113,10 @@
   <!-- Один день вашего сайта -->
   <section class="day" id="day">
     <div class="wrap">
-      <div class="day__head reveal">
+      <div class="sec-head reveal">
         <p class="eyebrow">Один день вашего сайта</p>
-        <h2>Вы отдыхаете.<br><em>Сайт работает.</em></h2>
-        <p class="day__now">У вас сейчас <b class="js-local-time">--:--</b>. Вот что в это время может делать хороший сайт.</p>
+        <h2>Вы отдыхаете.<br><mark>Сайт работает.</mark></h2>
+        <p class="sec-lead">У вас сейчас <b class="js-local-time">--:--</b>. Вот что в это время может делать хороший сайт.</p>
       </div>
       <ol class="day__list" id="dayList">
         <li data-h="2"><time>02:10</time><p>Вы спите. Гостья из Варшавы выбирает, где провести август, и оставляет заявку на ваш номер.</p></li>
@@ -145,11 +129,55 @@
     </div>
   </section>
 
+  <section class="protos" id="protos">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Ещё прототипы</p>
+        <h2>Сайт под <mark>любую нишу</mark></h2>
+        <p class="sec-lead">Отели, клиники, мастера, бюро. Каждый прототип собран под конкретный бизнес, а не из шаблона.</p>
+      </div>
+      <div class="protos__grid">
+        <article class="proto reveal" data-cursor="смотреть"><div class="proto__media"><video muted playsinline loop preload="none" data-src="assets/video/p-kazkovyi.mp4" poster="assets/video/p-kazkovyi.jpg"></video></div><p class="proto__tag">Садиба · Буковина</p><h3>Казковий будиночок</h3></article>
+        <article class="proto reveal" data-cursor="смотреть"><div class="proto__media"><video muted playsinline loop preload="none" data-src="assets/video/p-yandrusi.mp4" poster="assets/video/p-yandrusi.jpg"></video></div><p class="proto__tag">Мини-отель · Кам'янець-Подільський</p><h3>Яндрусі</h3></article>
+        <article class="proto reveal" data-cursor="смотреть"><div class="proto__media"><video muted playsinline loop preload="none" data-src="assets/video/p-dentalife.mp4" poster="assets/video/p-dentalife.jpg"></video></div><p class="proto__tag">Стоматология · Остия, Италия</p><h3>Clinica Dentalife</h3></article>
+        <article class="proto reveal" data-cursor="смотреть"><div class="proto__media"><video muted playsinline loop preload="none" data-src="assets/video/p-lytvynova.mp4" poster="assets/video/p-lytvynova.jpg"></video></div><p class="proto__tag">Бюро легализации · Лодзь</p><h3>Бюро Тетяни Литвинової</h3></article>
+        <article class="proto reveal" data-cursor="смотреть"><div class="proto__media"><video muted playsinline loop preload="none" data-src="assets/video/p-electric.mp4" poster="assets/video/p-electric.jpg"></video></div><p class="proto__tag">Мастер · Киев</p><h3>Електрик Володимир</h3></article>
+        <article class="proto proto--cta reveal"><p class="proto__tag">Ваша ниша</p><h3>Здесь может быть<br>ваш сайт</h3><a class="btn" href="https://t.me/meannush" target="_blank" rel="noopener">Обсудить</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap about__inner">
+      <div class="badge" id="badge">
+        <div class="badge__strap"></div>
+        <div class="badge__clip"></div>
+        <div class="badge__card">
+          <div class="badge__hole"></div>
+          <p class="badge__label">Web designer card</p>
+          <img class="badge__photo" src="assets/img/anna-face.jpg" alt="Анна">
+          <p class="badge__name">Anna</p>
+          <dl class="badge__rows">
+            <div><dt>Делаю</dt><dd>сайты на AI</dd></div>
+            <div><dt>Плюс</dt><dd>SEO и реклама Meta</dd></div>
+            <div><dt>Работаю</dt><dd>Италия · Украина</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="about__text reveal">
+        <p class="eyebrow">Кто делает</p>
+        <h2>Привет, я <mark>Анна</mark></h2>
+        <p class="sec-lead">Живу в Риме, работаю с Италией и Украиной. Делаю сайты с помощью AI, настраиваю их под Google и ChatGPT и запускаю рекламу в Instagram и Facebook. Всё в одних руках, поэтому сайт и реклама работают вместе.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="services" id="services">
     <div class="wrap">
-      <div class="services__head reveal">
+      <div class="sec-head reveal">
         <p class="eyebrow">Что я делаю</p>
-        <h2>Три вещи, которые<br>вместе дают <em>заявки</em></h2>
+        <h2>Три вещи, которые<br>вместе дают <mark>заявки</mark></h2>
       </div>
       <div class="services__grid">
         <article class="svc reveal"><span class="svc__n">01</span><h3>Сайт под ключ</h3><p>Дизайн, тексты, живое видео на первом экране, форма заявки. Запускаю на вашем домене.</p></article>
@@ -180,6 +208,7 @@
   </section>
 </main>
 
+<div class="cursor" id="cursor" aria-hidden="true"><span></span></div>
 <script src="app.js"></script>
 </body>
 </html>

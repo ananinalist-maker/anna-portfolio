@@ -3,31 +3,31 @@
 
   // ---------- Кейсы ----------
   const CASES = [
-    {
-      title: 'Горянка', type: 'Садиба в Карпатах · живой сайт',
-      desc: 'Сайт для семейной садибы: видео-hero, номера, форма брони без посредников. Сайт работает и приводит гостей напрямую.',
-      tags: ['Сайт под ключ', 'SEO', 'Бронирование'],
-      url: 'https://horianka.com.ua', video: 'assets/video/case-horianka.mp4', poster: 'assets/video/case-horianka.jpg'
-    },
-    {
-      title: 'Карпатська Форель', type: 'Отель и форелевое хозяйство · живой сайт',
-      desc: 'Большой сайт с номерами, бассейном, рестораном и рыбалкой. Онлайн-заявка, своя страница под каждую услугу.',
-      tags: ['Сайт под ключ', 'SEO', 'Заявки'],
-      url: 'https://karpatska-forel.com.ua', video: 'assets/video/case-forel.mp4', poster: 'assets/video/case-forel.jpg'
-    },
-    {
-      title: 'Рутенія', type: 'Мини-отель с бассейном · концепт',
-      desc: 'Концепт сайта в стиле «Forest»: тёмная зелень, живое видео с бассейном, бронь прямо с первого экрана.',
-      tags: ['Дизайн', 'Hero-видео', 'Концепт'],
-      url: 'https://ananinalist-maker.github.io/proto-ruteniya-forest/', video: 'assets/video/case-ruteniya.mp4', poster: 'assets/video/case-ruteniya.jpg'
-    },
-    {
-      title: 'Tuttofare', type: 'Ремонт под ключ в Риме · живой сайт',
+    { title: 'Рутенія', type: 'Мини-отель с бассейном · концепт',
+      desc: 'Концепт в стиле «Forest»: тёмная зелень, живое видео с бассейном, бронь прямо с первого экрана.',
+      tags: ['Дизайн', 'Hero-видео', 'Концепт'], v: 'ruteniya' },
+    { title: 'Горянка', type: 'Садиба в Карпатах · живой сайт',
+      desc: 'Сайт для семейной садибы: видео-hero, номера, форма брони без посредников. Гости приходят напрямую.',
+      tags: ['Сайт под ключ', 'SEO', 'Бронирование'], v: 'horianka' },
+    { title: 'Карпатська Форель', type: 'Отель и форелевое хозяйство · живой сайт',
+      desc: 'Большой сайт с номерами, бассейном, рестораном и рыбалкой. Онлайн-заявка и своя страница под каждую услугу.',
+      tags: ['Сайт под ключ', 'SEO', 'Заявки'], v: 'forel' },
+    { title: 'Геолог', type: 'Гостевые квартиры · Стрый',
+      desc: 'Сайт для отеля у вокзала: номера, кухня, отзывы гостей дословно и заявка напрямую, без Booking.',
+      tags: ['Отель', 'Прототип', 'Заявки'], v: 'geolog' },
+    { title: 'Абітурієнт', type: 'Репетиторский центр · Винники',
+      desc: 'Живой мультяшный первый экран, табло НМТ от 100 до 200, направления, поездки учеников по Европе и отзывы.',
+      tags: ['Образование', 'Hero-видео', 'Анимация'], v: 'abiturient' },
+    { title: 'maxiterm T5', type: 'Лендинг твердотопливных котлов',
+      desc: 'Лендинг на пару моделей: карточки котлов, доставка и оплата, заявки сразу в Telegram.',
+      tags: ['Лендинг', 'Товары', 'Telegram'], v: 'kotly' },
+    { title: 'KIOS Sutri', type: 'Интернет-магазин одежды · Италия',
+      desc: 'Магазин женской одежды от 38 до 52 размера и детская линия KIOS Kids: каталог, корзина, оформление заказа.',
+      tags: ['Интернет-магазин', 'Каталог', 'Корзина'], v: 'kios' },
+    { title: 'Tuttofare', type: 'Ремонт под ключ в Риме · живой сайт',
       desc: 'Сайт на итальянском для ремонтной компании: услуги, работы, блог. SEO под Google и AI-поиск.',
-      tags: ['Сайт', 'SEO', 'Блог'],
-      url: 'https://tuttofare-roma.it/', video: 'assets/video/case-tuttofare.mp4', poster: 'assets/video/case-tuttofare.jpg'
-    }
-  ];
+      tags: ['Сайт', 'SEO', 'Блог'], v: 'tuttofare' }
+  ].map(c => ({ ...c, video: `assets/video/case-${c.v}.mp4`, poster: `assets/video/case-${c.v}.jpg` }));
 
   // ---------- Две сцены: горизонтальная (компьютер) и вертикальная (телефон) ----------
   const MOBILE = matchMedia('(max-width:820px)').matches;
@@ -49,7 +49,6 @@
   const scene = $('scene'), trans = $('trans'), screen = $('screen'), caseVideo = $('caseVideo');
   const card = $('caseCard');
   scene.style.width = CONF.w + 'px'; scene.style.height = CONF.h + 'px';
-  trans.src = CONF.trans;
   $('endImg').src = CONF.end;
   $('overlayImg').src = CONF.overlay;
 
@@ -102,7 +101,6 @@
     $('caseType').textContent = c.type;
     $('caseDesc').textContent = c.desc;
     $('caseTags').innerHTML = c.tags.map(t => `<li>${t}</li>`).join('');
-    $('caseLink').href = c.url;
     [...dots.children].forEach((d, k) => {
       d.className = k < i ? 'done' : '';
       if (k === i) { void d.offsetWidth; d.className = 'on'; }
@@ -163,7 +161,9 @@
     setState('playing');
     window.scrollTo(0, 0);
     if (instant) { finishTransition(); return; }
+    if (!trans.src) trans.src = CONF.trans;
     trans.currentTime = 0;
+    trans.playbackRate = 1;
     const p = trans.play();
     raf = requestAnimationFrame(trackFocus);
     if (p) p.catch(() => finishTransition());
@@ -177,6 +177,9 @@
     loadCaseVideo(caseIdx);
   }
   trans.addEventListener('ended', finishTransition);
+  trans.addEventListener('playing', () => body.classList.add('trans-on'));
+  // переход заранее целиком в память, чтобы не было пустого кадра
+  fetch(CONF.trans).then(r => r.blob()).then(bl => { if (!trans.src) trans.src = URL.createObjectURL(bl); }).catch(() => {});
 
   function goHero() {
     if (state === 'hero') return;
@@ -185,6 +188,7 @@
     trans.currentTime = 0;
     focus = CONF.focusStart.slice(); fitScene();
     window.scrollTo(0, 0);
+    body.classList.remove('trans-on');
     setState('hero');
   }
 
@@ -193,7 +197,7 @@
   const now = () => performance.now();
   addEventListener('wheel', e => {
     if (state === 'hero' && e.deltaY > 6) { e.preventDefault(); goCases(); lock = now(); }
-    else if (state === 'playing') e.preventDefault();
+    else if (state === 'playing') { e.preventDefault(); if (e.deltaY > 6 && now() - lock > 500) trans.playbackRate = 2.5; }
     else if (state === 'cases' && e.deltaY < -6 && scrollY <= 0 && now() - lock > 900) { e.preventDefault(); goHero(); }
   }, { passive: false });
 
@@ -204,6 +208,7 @@
     if (ty == null || used) return;
     const dx = tx - e.touches[0].clientX, dy = ty - e.touches[0].clientY;
     if (state === 'hero' && dy > 30 && Math.abs(dy) > Math.abs(dx)) { used = true; goCases(); lock = now(); }
+    else if (state === 'playing' && dy > 30 && now() - lock > 500) { used = true; trans.playbackRate = 2.5; }
     else if (state === 'cases' && scrollY <= 0 && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) { used = true; dx > 0 ? next() : prev(); }
     else if (state === 'cases' && dy < -40 && Math.abs(dy) > Math.abs(dx) && scrollY <= 0 && now() - lock > 900) { used = true; goHero(); }
   }, { passive: true });
@@ -261,8 +266,45 @@
   }), { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(n => io.observe(n));
 
+  // ---------- Прототипы: видео играет при наведении (ПК) или в кадре (телефон) ----------
+  document.querySelectorAll('.proto video').forEach(v => {
+    const card = v.closest('.proto');
+    const load = () => { if (!v.src) v.src = v.dataset.src; };
+    if (MOBILE) {
+      new IntersectionObserver(es => es.forEach(en => {
+        if (en.isIntersecting) { load(); v.play().catch(() => {}); } else v.pause();
+      }), { threshold: 0.6 }).observe(v);
+    } else {
+      card.addEventListener('mouseenter', () => { load(); v.play().catch(() => {}); });
+      card.addEventListener('mouseleave', () => v.pause());
+    }
+  });
+
+  // ---------- Курсор и «магнитные» кнопки (только мышь) ----------
+  if (matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    const cur = $('cursor'), lab = cur.querySelector('span');
+    let mx = -100, my = -100, cx = -100, cy = -100;
+    addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    (function loop() { cx += (mx - cx) * .2; cy += (my - cy) * .2; cur.style.transform = `translate(${cx}px,${cy}px)`; requestAnimationFrame(loop); })();
+    document.addEventListener('mouseover', e => {
+      const t = e.target.closest('[data-cursor],a,button');
+      cur.classList.toggle('is-link', !!t && !t.dataset.cursor);
+      cur.classList.toggle('is-label', !!(t && t.dataset.cursor));
+      lab.textContent = t && t.dataset.cursor ? t.dataset.cursor : '';
+    });
+    body.classList.add('has-cursor');
+    document.querySelectorAll('.btn').forEach(bt => {
+      bt.addEventListener('mousemove', e => {
+        const r = bt.getBoundingClientRect();
+        bt.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .18}px,${(e.clientY - r.top - r.height / 2) * .3}px)`;
+      });
+      bt.addEventListener('mouseleave', () => { bt.style.transform = ''; });
+    });
+  }
+
   addEventListener('resize', fitScene);
   renderCase(0);
+  caseVideo.poster = CASES[0].poster; caseVideo.src = CASES[0].video; caseVideo.preload = 'auto';
   fitScene();
   setState('hero');
   addEventListener('load', () => setTimeout(preload, 1500));
