@@ -29,27 +29,37 @@
     }
   ];
 
-  // Углы экрана ноутбука в последнем кадре перехода (кадр 1280×720)
-  const QUAD = [[232, 211], [767, 174], [836, 531], [301, 655]];
-  const SCREEN_W = 1280, SCREEN_H = 800, SCENE_W = 1280, SCENE_H = 720;
-  // Точка фокуса при обрезке под экран (доли кадра): на старте — Анна, в конце — экран
+  // ---------- Две сцены: горизонтальная (компьютер) и вертикальная (телефон) ----------
   const MOBILE = matchMedia('(max-width:820px)').matches;
-  const FOCUS_START = MOBILE ? [0.7, 0.42] : [0.62, 0.42], FOCUS_END = [0.42, 0.55];
+  const CONF = MOBILE ? {
+    w: 720, h: 1280,
+    trans: 'assets/video/transition-m.mp4', end: 'assets/img/end-m.jpg', overlay: 'assets/img/end_overlay-m.webp',
+    quad: [[24, 447], [632, 392], [684, 836], [76, 955]],       // углы экрана в последнем кадре
+    focusStart: [0.62, 0.5], focusEnd: [0.5, 0.5]
+  } : {
+    w: 1280, h: 720,
+    trans: 'assets/video/transition.mp4', end: 'assets/img/end-frame.jpg', overlay: 'assets/img/end_overlay.webp',
+    quad: [[232, 211], [767, 174], [836, 531], [301, 655]],
+    focusStart: [0.62, 0.42], focusEnd: [0.42, 0.55]
+  };
+  const SCREEN_W = 1280, SCREEN_H = 800, CASE_DUR = 16;
 
   const $ = id => document.getElementById(id);
   const body = document.body;
   const scene = $('scene'), trans = $('trans'), screen = $('screen'), caseVideo = $('caseVideo');
   const card = $('caseCard');
-  let state = 'hero';
-  let caseIdx = 0;
-  let focus = FOCUS_START.slice();
-  let busy = false;
+  scene.style.width = CONF.w + 'px'; scene.style.height = CONF.h + 'px';
+  trans.src = CONF.trans;
+  $('endImg').src = CONF.end;
+  $('overlayImg').src = CONF.overlay;
 
-  // ---------- Обрезка сцены как object-fit: cover с точкой фокуса ----------
+  let state = 'hero', caseIdx = 0, focus = CONF.focusStart.slice(), busy = false;
+
+  // ---------- Обрезка сцены как cover с точкой фокуса ----------
   function fitScene() {
     const vw = innerWidth, vh = innerHeight;
-    const s = Math.max(vw / SCENE_W, vh / SCENE_H);
-    const w = SCENE_W * s, h = SCENE_H * s;
+    const s = Math.max(vw / CONF.w, vh / CONF.h);
+    const w = CONF.w * s, h = CONF.h * s;
     const x = Math.min(0, Math.max(vw - w, vw / 2 - focus[0] * w));
     const y = Math.min(0, Math.max(vh - h, vh / 2 - focus[1] * h));
     scene.style.transform = `translate(${x}px,${y}px) scale(${s})`;
@@ -63,7 +73,6 @@
       A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
       A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
     }
-    // Гаусс
     for (let c = 0; c < 8; c++) {
       let p = c;
       for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
@@ -78,10 +87,13 @@
     return [h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1];
   }
   screen.style.transform = 'matrix3d(' + homography(
-    [[0, 0], [SCREEN_W, 0], [SCREEN_W, SCREEN_H], [0, SCREEN_H]], QUAD
+    [[0, 0], [SCREEN_W, 0], [SCREEN_W, SCREEN_H], [0, SCREEN_H]], CONF.quad
   ).join(',') + ')';
 
   // ---------- Кейсы ----------
+  const dots = $('caseDots');
+  dots.innerHTML = CASES.map(() => '<i></i>').join('');
+  dots.style.setProperty('--dur', CASE_DUR + 's');
   function renderCase(i) {
     const c = CASES[i];
     $('caseNum').textContent = String(i + 1).padStart(2, '0');
@@ -91,6 +103,10 @@
     $('caseDesc').textContent = c.desc;
     $('caseTags').innerHTML = c.tags.map(t => `<li>${t}</li>`).join('');
     $('caseLink').href = c.url;
+    [...dots.children].forEach((d, k) => {
+      d.className = k < i ? 'done' : '';
+      if (k === i) { void d.offsetWidth; d.className = 'on'; }
+    });
   }
   function loadCaseVideo(i) {
     const c = CASES[i];
@@ -101,23 +117,27 @@
     caseVideo.play().catch(() => {});
   }
   function showCase(i) {
+    i = (i + CASES.length) % CASES.length;
     if (busy || i === caseIdx) return;
     busy = true;
-    caseIdx = (i + CASES.length) % CASES.length;
-    caseVideo.pause();                        // прежнее видео стоп
+    caseIdx = i;
+    caseVideo.pause();
     card.classList.add('is-out');
     caseVideo.classList.add('is-out');
     setTimeout(() => {
       renderCase(caseIdx);
-      loadCaseVideo(caseIdx);                 // новое с начала
+      loadCaseVideo(caseIdx);
       card.classList.remove('is-out');
       caseVideo.classList.remove('is-out');
       setTimeout(() => { busy = false; }, 300);
     }, 420);
   }
-  $('prevBtn').addEventListener('click', () => showCase((caseIdx - 1 + CASES.length) % CASES.length));
-  $('nextBtn').addEventListener('click', () => showCase((caseIdx + 1) % CASES.length));
-  // предзагрузка следующих видео
+  const next = () => showCase(caseIdx + 1), prev = () => showCase(caseIdx - 1);
+  $('prevBtn').addEventListener('click', prev);
+  $('nextBtn').addEventListener('click', next);
+  // кейс доиграл — сам переходим к следующему
+  caseVideo.loop = false;
+  caseVideo.addEventListener('ended', () => { if (state === 'cases') next(); });
   const preload = () => CASES.forEach(c => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = c.video; document.head.appendChild(l); });
 
   // ---------- Состояния ----------
@@ -130,10 +150,10 @@
 
   let raf = 0;
   function trackFocus() {
-    const d = trans.duration || 8;
+    const d = trans.duration || 6;
     const t = Math.min(1, trans.currentTime / d);
     const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    focus = [FOCUS_START[0] + (FOCUS_END[0] - FOCUS_START[0]) * e, FOCUS_START[1] + (FOCUS_END[1] - FOCUS_START[1]) * e];
+    focus = [0, 1].map(k => CONF.focusStart[k] + (CONF.focusEnd[k] - CONF.focusStart[k]) * e);
     fitScene();
     if (state === 'playing') raf = requestAnimationFrame(trackFocus);
   }
@@ -150,7 +170,7 @@
   }
   function finishTransition() {
     cancelAnimationFrame(raf);
-    focus = FOCUS_END.slice(); fitScene();
+    focus = CONF.focusEnd.slice(); fitScene();
     if (trans.duration) trans.currentTime = trans.duration;
     setState('cases');
     renderCase(caseIdx);
@@ -163,7 +183,7 @@
     cancelAnimationFrame(raf);
     trans.pause(); caseVideo.pause();
     trans.currentTime = 0;
-    focus = FOCUS_START.slice(); fitScene();
+    focus = CONF.focusStart.slice(); fitScene();
     window.scrollTo(0, 0);
     setState('hero');
   }
@@ -177,20 +197,22 @@
     else if (state === 'cases' && e.deltaY < -6 && scrollY <= 0 && now() - lock > 900) { e.preventDefault(); goHero(); }
   }, { passive: false });
 
-  let ty = null;
-  addEventListener('touchstart', e => { ty = e.touches[0].clientY; }, { passive: true });
+  // касания: вертикальный свайп — сцены, горизонтальный на кейсах — следующий сайт
+  let tx = null, ty = null, used = false;
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; used = false; }, { passive: true });
   addEventListener('touchmove', e => {
-    if (ty == null) return;
-    const dy = ty - e.touches[0].clientY;
-    if (state === 'hero' && dy > 30) { goCases(); ty = null; lock = now(); }
-    else if (state === 'cases' && dy < -40 && scrollY <= 0 && now() - lock > 900) { goHero(); ty = null; }
+    if (ty == null || used) return;
+    const dx = tx - e.touches[0].clientX, dy = ty - e.touches[0].clientY;
+    if (state === 'hero' && dy > 30 && Math.abs(dy) > Math.abs(dx)) { used = true; goCases(); lock = now(); }
+    else if (state === 'cases' && scrollY <= 0 && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) { used = true; dx > 0 ? next() : prev(); }
+    else if (state === 'cases' && dy < -40 && Math.abs(dy) > Math.abs(dx) && scrollY <= 0 && now() - lock > 900) { used = true; goHero(); }
   }, { passive: true });
 
   addEventListener('keydown', e => {
-    if (state === 'hero' && ['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); goCases(); }
+    if (state === 'hero' && ['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key) && !(e.target.closest && e.target.closest('a,button'))) { e.preventDefault(); goCases(); }
     if (state === 'cases' && scrollY <= 0) {
-      if (e.key === 'ArrowRight') $('nextBtn').click();
-      if (e.key === 'ArrowLeft') $('prevBtn').click();
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowUp' || e.key === 'PageUp') goHero();
     }
   });
@@ -201,16 +223,43 @@
     if (state === 'hero') goCases(); else window.scrollTo({ top: 0, behavior: 'smooth' });
   }));
   document.querySelectorAll('[data-home]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goHero(); }));
-  document.querySelectorAll('a[href^="#services"],a[href^="#contact"]').forEach(a => a.addEventListener('click', e => {
-    if (state === 'hero') { e.preventDefault(); goCases(true); requestAnimationFrame(() => document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' })); }
+  document.querySelectorAll('.nav__links a[href^="#"]:not([data-goto])').forEach(a => a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    if (state === 'hero') goCases(true);
+    requestAnimationFrame(() => t.scrollIntoView({ behavior: 'smooth' }));
   }));
 
-  // пока видео кейсов не на экране — не играем (экономия батареи)
+  // видео кейса не на экране — пауза
   addEventListener('scroll', () => {
+    body.classList.toggle('scrolled', state === 'cases' && scrollY > innerHeight * 0.6);
     if (state !== 'cases') return;
     if (scrollY > innerHeight * 0.9) caseVideo.pause();
-    else if (caseVideo.paused && !busy) caseVideo.play().catch(() => {});
+    else if (caseVideo.paused && !busy && !caseVideo.ended) caseVideo.play().catch(() => {});
   }, { passive: true });
+
+  // ---------- Живые часы: Рим и время посетителя ----------
+  const romeFmt = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const localFmt = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const dayItems = [...document.querySelectorAll('#dayList li')];
+  function tick() {
+    const d = new Date();
+    document.querySelectorAll('.js-rome-time').forEach(n => { n.textContent = romeFmt.format(d); });
+    document.querySelectorAll('.js-local-time').forEach(n => { n.textContent = localFmt.format(d); });
+    // «сейчас» в ленте дня — последний момент, который уже наступил
+    const h = d.getHours() + d.getMinutes() / 60;
+    let cur = dayItems[dayItems.length - 1];
+    dayItems.forEach(li => { if (+li.dataset.h <= h) cur = li; });
+    dayItems.forEach(li => li.classList.toggle('is-now', li === cur));
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ---------- Появление блоков при прокрутке ----------
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+  }), { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(n => io.observe(n));
 
   addEventListener('resize', fitScene);
   renderCase(0);
