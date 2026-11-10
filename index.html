@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anna — сайты на AI, SEO и реклама Meta</title>
+<meta name="description" content="Anna: делаю сайты на AI, вывожу их в Google и ChatGPT, запускаю рекламу Meta. Кейсы: Горянка, Карпатська Форель, Tuttofare.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="video" href="assets/video/transition.mp4" type="video/mp4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%232a1f1a%22/%3E%3Ctext x=%2232%22 y=%2246%22 font-family=%22Georgia%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%23f6efe4%22%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="is-hero">
+
+<header class="nav">
+  <a class="nav__logo" href="#" data-home>Anna<span>.</span></a>
+  <nav class="nav__links">
+    <a href="#" data-goto="cases">Кейсы</a>
+    <a href="#services">Услуги</a>
+    <a href="#contact">Контакты</a>
+  </nav>
+  <a class="btn btn--small" href="https://t.me/meannush" target="_blank" rel="noopener">Обсудить проект</a>
+</header>
+
+<!-- Фиксированная сцена: первый экран → переход → кейсы -->
+<div class="stage" id="stage">
+  <div class="scene" id="scene">
+    <img class="scene__hero" id="heroImg" src="assets/img/hero-poster.jpg" alt="Анна за ноутбуком, за окном крыши Рима">
+    <video class="scene__trans" id="trans" src="assets/video/transition.mp4" muted playsinline preload="auto"></video>
+    <div class="scene__cases" id="casesLayer">
+      <img class="scene__end" src="assets/img/end-frame.jpg" alt="">
+      <div class="screen" id="screen">
+        <video class="screen__video" id="caseVideo" muted playsinline loop preload="auto"></video>
+        <div class="screen__glare"></div>
+      </div>
+      <img class="scene__overlay" src="assets/img/end_overlay.png" alt="">
+    </div>
+  </div>
+
+  <!-- Первый экран: тексты и карточка -->
+  <section class="hero" id="hero">
+    <div class="hero__text">
+      <p class="eyebrow">AI · Web · SEO · Meta Ads</p>
+      <h1 class="hero__title">Anna</h1>
+      <p class="hero__sub">Сайты на AI&nbsp;+ SEO&nbsp;+ реклама Meta.<br>Чтобы вас находили в&nbsp;Google и&nbsp;ChatGPT.</p>
+    </div>
+    <div class="badge" id="badge">
+      <div class="badge__strap"></div>
+      <div class="badge__clip"></div>
+      <div class="badge__card">
+        <div class="badge__hole"></div>
+        <p class="badge__label">Web designer card</p>
+        <img class="badge__photo" src="assets/img/anna-face.jpg" alt="Анна">
+        <p class="badge__name">Anna</p>
+        <dl class="badge__rows">
+          <div><dt>Делаю</dt><dd>сайты на AI</dd></div>
+          <div><dt>Плюс</dt><dd>SEO и реклама Meta</dd></div>
+          <div><dt>Работаю</dt><dd>Италия · Украина</dd></div>
+        </dl>
+      </div>
+    </div>
+    <button class="scroll-hint" id="scrollHint" aria-label="Смотреть работы">
+      <span>Листайте вниз, покажу работы</span><i></i>
+    </button>
+  </section>
+
+  <!-- Второй экран: кейсы -->
+  <section class="cases" id="cases" aria-live="polite">
+    <div class="case-card" id="caseCard">
+      <p class="case-card__num"><span id="caseNum">01</span> / <span id="caseTotal">04</span></p>
+      <h2 class="case-card__title" id="caseTitle"></h2>
+      <p class="case-card__type" id="caseType"></p>
+      <p class="case-card__desc" id="caseDesc"></p>
+      <ul class="case-card__tags" id="caseTags"></ul>
+      <a class="case-card__link" id="caseLink" href="#" target="_blank" rel="noopener">Открыть сайт ↗</a>
+    </div>
+    <div class="case-nav">
+      <button class="btn btn--ghost" id="prevBtn" aria-label="Предыдущий кейс">← Предыдущий</button>
+      <button class="btn" id="nextBtn" aria-label="Следующий кейс">Следующий →</button>
+    </div>
+  </section>
+</div>
+
+<!-- Обычная прокрутка после кейсов -->
+<main class="flow" id="flow">
+  <div class="flow__spacer" id="casesSpacer"></div>
+  <section class="info" id="services">
+    <div class="info__inner">
+      <h2>Что я делаю</h2>
+      <div class="info__grid">
+        <article><h3>Сайт под ключ</h3><p>Дизайн, тексты, живой hero-ролик, форма заявки. Запуск на вашем домене.</p></article>
+        <article><h3>SEO и&nbsp;AI-поиск</h3><p>Чтобы сайт находили в&nbsp;Google и&nbsp;чтобы о&nbsp;вас рассказывал ChatGPT.</p></article>
+        <article><h3>Реклама Meta</h3><p>Facebook и&nbsp;Instagram: креативы, запуск, ежедневный разбор цифр.</p></article>
+      </div>
+    </div>
+  </section>
+  <section class="info info--dark" id="contact">
+    <div class="info__inner">
+      <h2>Обсудим ваш проект?</h2>
+      <p>Напишите в&nbsp;Telegram, отвечу сама.</p>
+      <a class="btn btn--light" href="https://t.me/meannush" target="_blank" rel="noopener">Написать в Telegram</a>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
