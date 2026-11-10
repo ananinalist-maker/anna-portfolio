@@ -72,6 +72,16 @@ body.is-cases .scene__cases{opacity:1}
 .hero__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;animation:fade 1s .5s var(--ease) both}
 @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
+/* карточка на первом экране: висит у правого края, при скролле улетает вверх */
+.hero .badge--hero{position:absolute;top:-24px;right:clamp(14px,2.2vw,40px);width:172px;
+  transition:transform 1s var(--ease),opacity .8s var(--ease)}
+.badge--hero .badge__strap{height:clamp(150px,24vh,240px)}
+.badge--hero .badge__card{padding:26px 14px 14px}
+.badge--hero .badge__name{font-size:26px}
+.badge--hero .badge__rows{font-size:10.5px}
+body:not(.is-hero) .badge--hero{animation:none;transform:translateY(-130vh) rotate(-8deg);opacity:0}
+@media (min-width:821px){.badge--about{display:none}.about{padding-top:clamp(80px,12vh,130px)}.about__text{padding-top:0;text-align:center}.about__text h2,.about__text .eyebrow{text-align:center}.about__text .sec-lead{margin-left:auto}}
+
 /* живые часы Рима */
 .live{position:absolute;left:var(--pad);bottom:34px;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;
   background:rgba(255,250,243,.78);backdrop-filter:blur(10px);font-size:13px;color:var(--espresso);
@@ -275,7 +285,7 @@ mark{background:linear-gradient(transparent 58%,rgba(225,154,114,.42) 58%,rgba(2
   .hero::before{background:linear-gradient(rgba(246,239,228,.7),rgba(246,239,228,0) 34%)}
   .live{left:16px;right:auto;bottom:86px;font-size:12px;padding:8px 13px}
   .live__sep,.live span:last-child{display:none}
-  .scroll-hint{display:none}
+  .scroll-hint,.badge--hero{display:none}
 
   .cases__head{top:70px;left:20px;right:20px}
   .cases__head .eyebrow{margin-bottom:6px}
