@@ -52,6 +52,8 @@
   $('endImg').src = CONF.end;
   $('overlayImg').src = CONF.overlay;
 
+  let lock = 0;
+  const now = () => performance.now();
   let state = 'hero', caseIdx = 0, focus = CONF.focusStart.slice(), busy = false;
 
   // ---------- Обрезка сцены как cover с точкой фокуса ----------
@@ -133,9 +135,8 @@
   const next = () => showCase(caseIdx + 1), prev = () => showCase(caseIdx - 1);
   $('prevBtn').addEventListener('click', prev);
   $('nextBtn').addEventListener('click', next);
-  // кейс доиграл — сам переходим к следующему
-  caseVideo.loop = false;
-  caseVideo.addEventListener('ended', () => { if (state === 'cases') next(); });
+  // по промту: кейсы сами не переключаются, только кнопками; видео кейса крутится по кругу
+  caseVideo.loop = true;
   const preload = () => CASES.forEach(c => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = c.video; document.head.appendChild(l); });
 
   // ---------- Состояния ----------
@@ -173,6 +174,7 @@
     focus = CONF.focusEnd.slice(); fitScene();
     if (trans.duration) trans.currentTime = trans.duration;
     setState('cases');
+    lock = now();   // инерция тачпада не уносит страницу дальше кейсов
     renderCase(caseIdx);
     loadCaseVideo(caseIdx);
   }
@@ -193,11 +195,10 @@
   }
 
   // ---------- Ввод ----------
-  let lock = 0;
-  const now = () => performance.now();
   addEventListener('wheel', e => {
     if (state === 'hero' && e.deltaY > 6) { e.preventDefault(); goCases(); lock = now(); }
-    else if (state === 'playing') { e.preventDefault(); if (e.deltaY > 6 && now() - lock > 500) trans.playbackRate = 2.5; }
+    else if (state === 'playing') e.preventDefault();
+    else if (state === 'cases' && now() - lock < 1200) e.preventDefault();
     else if (state === 'cases' && e.deltaY < -6 && scrollY <= 0 && now() - lock > 900) { e.preventDefault(); goHero(); }
   }, { passive: false });
 
@@ -208,7 +209,6 @@
     if (ty == null || used) return;
     const dx = tx - e.touches[0].clientX, dy = ty - e.touches[0].clientY;
     if (state === 'hero' && dy > 30 && Math.abs(dy) > Math.abs(dx)) { used = true; goCases(); lock = now(); }
-    else if (state === 'playing' && dy > 30 && now() - lock > 500) { used = true; trans.playbackRate = 2.5; }
     else if (state === 'cases' && scrollY <= 0 && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) { used = true; dx > 0 ? next() : prev(); }
     else if (state === 'cases' && dy < -40 && Math.abs(dy) > Math.abs(dx) && scrollY <= 0 && now() - lock > 900) { used = true; goHero(); }
   }, { passive: true });
@@ -241,7 +241,7 @@
     body.classList.toggle('scrolled', state === 'cases' && scrollY > innerHeight * 0.6);
     if (state !== 'cases') return;
     if (scrollY > innerHeight * 0.9) caseVideo.pause();
-    else if (caseVideo.paused && !busy && !caseVideo.ended) caseVideo.play().catch(() => {});
+    else if (caseVideo.paused && !busy) caseVideo.play().catch(() => {});
   }, { passive: true });
 
   // ---------- Живые часы: Рим и время посетителя ----------

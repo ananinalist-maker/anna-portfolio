@@ -142,8 +142,8 @@ body.is-cases .cases>*{pointer-events:auto}
 .case-card__link:hover{color:var(--espresso)}
 .case-card__dots{display:flex;gap:6px;margin-top:18px}
 .case-card__dots i{height:3px;flex:1;border-radius:3px;background:rgba(42,31,26,.12);overflow:hidden;position:relative}
-.case-card__dots i.on::after{content:"";position:absolute;inset:0;background:var(--terra);transform-origin:left;animation:prog var(--dur,16s) linear both}
-.case-card__dots i.done{background:var(--terra)}
+.case-card__dots i.on{background:var(--terra)}
+.case-card__dots i.done{background:rgba(181,101,60,.35)}
 @keyframes prog{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
 /* ---------- Обычная прокрутка ---------- */
